@@ -2,7 +2,7 @@
   <main>
     <div id="background"></div>
     <canvas id="canvas" width="1100" height="500">Go canvas</canvas>
-    <canvas id="canvas_2" width="1100" height="500">Go canvas</canvas>
+    <canvas id="canvas_bg" width="1100" height="500">Go canvas</canvas>
   </main>
 </template>
 
@@ -10,18 +10,6 @@
   html {
     background-color: #050411;
   }
-  #canvas {
-    border: 1px solid #92b6bc;
-    position: relative;
-    z-index: 2;
-  }
-  #canvas_2 {
-    position: absolute;
-    left: 0;
-    right: 0;
-    margin: auto;
-  }
-
   #background {
     background-color: rgb(60, 60, 60);
     position: absolute;
@@ -36,6 +24,18 @@
     filter: grayscale(0.6) blur(2px);
     opacity: 0.3;
   }
+  #canvas {
+    border: 1px solid #92b6bc;
+    position: relative;
+    z-index: 2;
+  }
+  #canvas_bg {
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: auto;
+    z-index: 3;
+  }
 </style>
 
 <script>
@@ -47,9 +47,8 @@ export default {
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
 
-    const canvas_2 = document.getElementById('canvas_2');
-    const ctx_2 = canvas_2.getContext('2d');
-
+    const canvas_bg = document.getElementById('canvas_bg');
+    const ctx_bg = canvas_bg.getContext('2d');
 
     // game loop
     let last = performance.now();
@@ -60,7 +59,7 @@ export default {
     // Величины
     const METER = 10;
     const SEC = 60 * step; //секунда равна количеству пересчётов
-    const G = 9.78 * METER / (1000*1000);   //м/с²
+    // const G = 9.78 * METER / (1000*1000);   //м/с²
 
     // Персонаж
     let charter = {
@@ -71,11 +70,18 @@ export default {
       stateIn: 'air',
       actionIn: 'stay',
       jumpCounter: 0,
-      speedX: 0,
-      speedY: 0,
-      aX: 0,
-      aY: 0,
+      vX: 0,
+      vY: 0,
+      // aX: 0,
+      // aY: 0,
       color: '#6affcb',
+    }
+
+    let platform = {
+      x: 20 * METER,
+      y: 25 * METER,
+      w: 20 * METER,
+      h: .5 * METER
     }
 
     // Способности, перки
@@ -87,9 +93,14 @@ export default {
     ctx.textAlign = 'right';
 
     // Рендер статичного фона
-    ctx_2.strokeStyle = "#fff";
-    ctx_2.lineWidth = 1;
-    ctx_2.strokeRect(-10, -10, 922, 600);
+    let render = () => {
+      ctx_bg.strokeStyle = "#fff";
+      ctx_bg.fillStyle = "#fff"
+      ctx_bg.lineWidth = 1;
+      ctx_bg.strokeRect(-10, -10, 922, 600);
+      ctx_bg.fillRect(platform.x, platform.y, platform.w, platform.h);
+    }
+    render();
 
     // handle user input. Назначение кнопок управления
     let inputState = { UP: false, DOWN: false, LEFT: false, RIGHT: false, SPACE: false };
@@ -129,92 +140,114 @@ export default {
     // *   return start + (finish - start) * time;
     // * }
 
+    function checkGround(e) {
+      const plx1 = platform.x;
+      const plx2 = platform.x + platform.w;
+      const ply1 = platform.y;
+      const ply2 = platform.y + platform.h + charter.height;
+      if ((plx1 < charter.x && charter.x < plx2) && (ply1 < charter.y && charter.y < ply2) && (charter.vY > 0)) {
+          charter.y = platform.y;
+          charter.stateIn = 'ground';
+        } else if ((plx1 < charter.x && charter.x < plx2) && (ply1 < charter.y && charter.y < ply2) && (charter.vY < 0)) {
+          charter.y = platform.y + platform.h + charter.height;
+          charter.vY = 0;
+        }
+      }      
+
     // Обновление игрового движка
     function updateCharter() {
-      if (inputState.LEFT) charter.speedX -= 1;
-      if (inputState.RIGHT) charter.speedX += 1;
-      if (inputState.ROTATE) charter.y -= METER;
+      if (inputState.LEFT) charter.vX -= 1;
+      if (inputState.RIGHT) charter.vX += 1;
 
-      if (charter.speedX !== 0) {
-        charter.x += charter.speedX;
-        if ( (!inputState.RIGHT && !inputState.LEFT && (charter.speedX !== 0))
+      if (charter.vX !== 0) {
+        charter.x += charter.vX;
+        if ( (!inputState.RIGHT && !inputState.LEFT && (charter.vX !== 0))
             || (inputState.RIGHT && inputState.LEFT) ) {
-          if (charter.speedX > 0) {
-            charter.speedX -= .5 * SEC;
+          if (charter.vX > 0) {
+            charter.vX -= .5 * SEC;
           } else {
-            charter.speedX += .5 * SEC;
+            charter.vX += .5 * SEC;
           }
         }
       }
 
       // Притяжение
       if (charter.stateIn === 'air') {
-        charter.speedY += .5 * SEC;
-        charter.y += charter.speedY
+        charter.vY += .5 * SEC;
+        charter.y += charter.vY
       } else if (charter.stateIn === 'ground') {
-        charter.speedY = 0
+        charter.vY = 0
       }
 
       // Прыжок 
       if (inputState.SPACE) {
         // мы на земле и мы отпускали пробел
         if (charter.stateIn === 'ground' && spaceWasUnPressed) {
-          charter.speedY = -10;
+          charter.vY = -10;
           charter.y -= 1;
         }
 
         // если мы в воздухе и не отпускали пробел
-        if ( charter.stateIn === 'air' && !spaceWasUnPressed && charter.speedY < 0) {
-          charter.speedY -= .2;
+        if ( charter.stateIn === 'air' && !spaceWasUnPressed && charter.vY < 0) {
+          charter.vY -= .2;
         }
 
         // Если мы в воздухе, у нас есть прыжки, и мы уже отпускали пробел
         if (charter.stateIn === 'air' && charter.jumpCounter <= maxJumps && spaceWasUnPressed) {
-          charter.speedY = -10;
+          charter.vY = -10;
           charter.jumpCounter += 1;
           spaceWasUnPressed = false;
         }
       }
 
       // Геометрия тела
-      if (charter.speedY !== 0) {
-        charter.width = 25 - Math.abs(charter.speedY) / 3;
+      if (charter.vY !== 0) {
+        charter.width = 25 - Math.abs(charter.vY) / 3;
       }
-      if (charter.speedX !== 0) {
-        charter.height = 50 - Math.abs(charter.speedX) / 3;
+      if (charter.vX !== 0) {
+        charter.height = 50 - Math.abs(charter.vX) / 3;
+      }
+
+      function onPlatform() {
+        const plx1 = platform.x;
+        const plx2 = platform.x + platform.w;
+        const ply1 = platform.y;
+        const ply2 = platform.y + platform.h;
+        return ((charter.y === platform.y) && (plx1 < charter.x && charter.x < plx2));
       }
       
       // проверка состояния
-      if (charter.y < 460) {
+      if (charter.y < 460 && !onPlatform()) {
         charter.stateIn = 'air';
-      } else if (charter.y = 460) {
+      } else { // из игрового фпс пролетает чуть ниже потом становится минимальным
         charter.stateIn = 'ground';
         charter.width = 25;
         charter.jumpCounter = 0;
       }
 
-      if (charter.speedX !== 0) {
+      if (charter.vX !== 0) {
         charter.actionIn = 'run';
-      } else if (charter.speedX === 0) {
+      } else if (charter.vX === 0) {
         charter.actionIn = 'stay';
         charter.height = 50;
       }
 
+      checkGround();
       // Cтоп зоны
       if (charter.y > 460) charter.y = 460;
       if (charter.y < 40) charter.y = 40;
       if (charter.x > 900) {
         charter.x = 900;
-        charter.speedX = 0;
+        charter.vX = 0;
       }
       if (charter.x < 15) {
         charter.x = 15
-        charter.speedX = 0;
-      };
-      if (charter.speedX > 12) charter.speedX = 12;
-      if (charter.speedX < -12) charter.speedX = -12;
-      if (charter.speedY > 20) charter.speedY = 20;
-      if (charter.speedY < -20) charter.speedY = -20;
+        charter.vX = 0;
+      }
+      if (charter.vX > 12) charter.vX = 12;
+      if (charter.vX < -12) charter.vX = -12;
+      if (charter.vY > 20) charter.vY = 20;
+      if (charter.vY < -20) charter.vY = -20;
       // if (charter) charter = ;
       // if (charter) charter = ;
       // if (charter) charter = ;
@@ -230,7 +263,7 @@ export default {
       ctx.fillStyle = charter.color;
       ctx.fillRect(0, 0, charter.width, charter.height);
       ctx.restore();
-    };
+    }
 
     // Рендер монитора свойств
     const keys_of_charter = Object.keys(charter);
