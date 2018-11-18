@@ -52,14 +52,17 @@ export default {
 
     // game loop
     let last = performance.now();
-    const step = 1 / 60; // update should be called 60 times per second
+    const fps = 30;
+    const step = 1 / fps; // update should be called 60 times per second
     let dt = 0;
     let now;
 
     // Величины
     const METER = 10;
-    const SEC = 60 * step; //секунда равна количеству пересчётов
+    const SEC = 60 / fps; //секунда равна количеству пересчётов
     // const G = 9.78 * METER / (1000*1000);   //м/с²
+    const MAX_X_SPEED = 9;
+    const MAX_Y_SPEED = 14;
 
     // Персонаж
     let charter = {
@@ -76,6 +79,7 @@ export default {
       // aY: 0,
       color: '#6affcb',
     }
+    let charterPrev = {};
 
     let platform = {
       x: 20 * METER,
@@ -136,9 +140,10 @@ export default {
     document.addEventListener('keyup', keyupHandler);
     // !handle user input. Назначение кнопок управления
 
-    // * function lerp(start, finish, time) {
-    // *   return start + (finish - start) * time;
-    // * }
+    // линейная интерполяция
+    let lerp = (start, finish, time) => {
+      return start + (finish - start) * time;
+    };
 
     function checkGround(e) {
       const plx1 = platform.x;
@@ -156,11 +161,26 @@ export default {
 
     // Обновление игрового движка
     function updateCharter() {
-      if (inputState.LEFT) charter.vX -= 1;
-      if (inputState.RIGHT) charter.vX += 1;
+      function onPlatform() {
+        const plx1 = platform.x;
+        const plx2 = platform.x + platform.w;
+        const ply1 = platform.y;
+        const ply2 = platform.y + platform.h;
+        return ((charter.y === platform.y) && (plx1 < charter.x && charter.x < plx2));
+      }
+
+      function updateLastParam(params) {
+        charterPrev.x = charter.x;
+        charterPrev.y = charter.y;
+      }
+
+      updateLastParam();
+
+      if (inputState.LEFT) charter.vX -= .5 * SEC;
+      if (inputState.RIGHT) charter.vX += .5 * SEC;
 
       if (charter.vX !== 0) {
-        charter.x += charter.vX;
+        charter.x += charter.vX * SEC;
         if ( (!inputState.RIGHT && !inputState.LEFT && (charter.vX !== 0))
             || (inputState.RIGHT && inputState.LEFT) ) {
           if (charter.vX > 0) {
@@ -174,7 +194,7 @@ export default {
       // Притяжение
       if (charter.stateIn === 'air') {
         charter.vY += .5 * SEC;
-        charter.y += charter.vY
+        charter.y += charter.vY * SEC;
       } else if (charter.stateIn === 'ground') {
         charter.vY = 0
       }
@@ -189,7 +209,7 @@ export default {
 
         // если мы в воздухе и не отпускали пробел
         if ( charter.stateIn === 'air' && !spaceWasUnPressed && charter.vY < 0) {
-          charter.vY -= .2;
+          charter.vY -= .2 * SEC;
         }
 
         // Если мы в воздухе, у нас есть прыжки, и мы уже отпускали пробел
@@ -208,14 +228,6 @@ export default {
         charter.height = 50 - Math.abs(charter.vX) / 3;
       }
 
-      function onPlatform() {
-        const plx1 = platform.x;
-        const plx2 = platform.x + platform.w;
-        const ply1 = platform.y;
-        const ply2 = platform.y + platform.h;
-        return ((charter.y === platform.y) && (plx1 < charter.x && charter.x < plx2));
-      }
-      
       // проверка состояния
       if (charter.y < 460 && !onPlatform()) {
         charter.stateIn = 'air';
@@ -244,21 +256,20 @@ export default {
         charter.x = 15
         charter.vX = 0;
       }
-      if (charter.vX > 12) charter.vX = 12;
-      if (charter.vX < -12) charter.vX = -12;
-      if (charter.vY > 20) charter.vY = 20;
-      if (charter.vY < -20) charter.vY = -20;
-      // if (charter) charter = ;
-      // if (charter) charter = ;
-      // if (charter) charter = ;
-      // if (charter) charter = ;
-      // if (charter) charter = ;
+      if (charter.vX > MAX_X_SPEED) charter.vX = MAX_X_SPEED;
+      if (charter.vX < -MAX_X_SPEED) charter.vX = -MAX_X_SPEED;
+      if (charter.vY > MAX_Y_SPEED) charter.vY = MAX_Y_SPEED;
+      if (charter.vY < -MAX_Y_SPEED) charter.vY = -MAX_Y_SPEED;
     } // !Обновление игрового движка
 
-    function renderCharter() {
+    function renderCharter(dt) {      
+      // draw rect using LERP
+      let smoothY = lerp(charterPrev.y, charter.y, dt);
+      let smoothX = lerp(charterPrev.x, charter.x, dt);
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.save();
-      ctx.translate(charter.x, charter.y);
+      ctx.translate(smoothX, smoothY);
       ctx.translate(-charter.width / 2, -charter.height);
       ctx.fillStyle = charter.color;
       ctx.fillRect(0, 0, charter.width, charter.height);
@@ -303,7 +314,7 @@ export default {
       last = now;
 
       // Рисуем по возможностям
-      renderCharter();
+      renderCharter(dt * fps);
       render_monitor_params();
       requestAnimationFrame(callback);
     }
