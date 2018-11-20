@@ -4,7 +4,9 @@
     <canvas id="canvas" width="1100" height="500">Go canvas</canvas>
     <canvas id="canvas_bg" width="1100" height="500">Go canvas</canvas>
 
-    <h1><span id="controller_amount">no</span> controller(s) detected</h1>
+    <h1 id="controller_amount">
+      Please use keyboard or connect controller
+    </h1>
     <div class="select-player"></div>
   </main>
 </template>
@@ -24,7 +26,7 @@ html {
   left: 0;
   background-image: url("../assets/3.jpg");
   background-size: cover;
-  filter: grayscale(0.6) blur(2px);
+  filter: grayscale(0.5);
   opacity: 0.3;
 }
 #canvas {
@@ -45,10 +47,11 @@ html {
   margin: 1em 0;
   position: absolute;
   left: 50%;
-  top: 700px;
-  border: 1px dotted;
+  top: 640px;
+  /* border: 1px dotted; */
   transform: translate(-50%, -50%);
   counter-reset: player;
+  min-height: 100px;
 }
 
 .select-player .player {
@@ -103,7 +106,8 @@ export default {
       div.setAttribute("data-button-leave", ctrl.button_leave);
       div.setAttribute("data-info", ctrl.name);
       document.getElementsByClassName("select-player")[0].appendChild(div);
-      document.getElementById('controller_amount').innerHTML = activeGamepads.length || "no";
+      document.getElementById('controller_amount').innerHTML = 
+      `${activeGamepads.length} controller(s) is connected` || "no controller(s)";
     });
     function gamepadLoop() {
       navigator.getGamepads(); // fixes chrome bug
@@ -206,14 +210,22 @@ export default {
       jumpCounter: 0,
       vX: 0,
       vY: 0,
-      color: "#6affcb"
+      color: "#6affcb",
+      onPlatform: false
     };
     let charterPrev = {};
 
     let platform = {
-      x: 20 * METER,
-      y: 25 * METER,
-      w: 20 * METER,
+      x: 15 * METER,
+      y: 30 * METER,
+      w: 15 * METER,
+      h: 0.5 * METER
+    };
+
+    let platform_2 = {
+      x: 60 * METER,
+      y: 20 * METER,
+      w: 15 * METER,
       h: 0.5 * METER
     };
 
@@ -226,14 +238,15 @@ export default {
     ctx.textAlign = "right";
 
     // Рендер статичного фона
-    let render = () => {
+    let renderBackground = (platform) => {
       ctx_bg.strokeStyle = "#fff";
       ctx_bg.fillStyle = "#fff";
       ctx_bg.lineWidth = 1;
       ctx_bg.strokeRect(-10, -10, 922, 600);
       ctx_bg.fillRect(platform.x, platform.y, platform.w, platform.h);
     };
-    render();
+    renderBackground(platform);
+    renderBackground(platform_2);
 
     // handle user input. Назначение кнопок управления
     let inputState = {
@@ -243,7 +256,7 @@ export default {
       RIGHT: false,
       SPACE: false
     };
-    let inputStatePrev = {}
+    let inputStatePrev = {};
     // отпускаем пробел
     let spaceWasUnPressed = true;
     let setKeyState = function(keyCode, isPressed) {
@@ -281,41 +294,56 @@ export default {
       return start + (finish - start) * time;
     };
 
-    function checkGround() {
+    // Если мы в платформе
+    function checkGround(player, platform) {
       const plx1 = platform.x;
       const plx2 = platform.x + platform.w;
       const ply1 = platform.y;
-      const ply2 = platform.y + platform.h + charter.height;
+      const ply2 = platform.y + platform.h + player.height;
       if (
-        plx1 < charter.x &&
-        charter.x < plx2 &&
-        (ply1 < charter.y && charter.y < ply2) &&
-        charter.vY > 0
+        plx1 < player.x &&
+        plx2 > player.x &&
+        (ply1 < player.y && player.y < ply2) &&
+        player.vY > 0
       ) {
-        charter.y = platform.y;
-        charter.stateIn = "ground";
+        player.y = ply1;
+        player.stateIn = "ground";
       } else if (
-        plx1 < charter.x &&
-        charter.x < plx2 &&
-        (ply1 < charter.y && charter.y < ply2) &&
-        charter.vY < 0
+        plx1 < player.x &&
+        player.x < plx2 &&
+        (ply1 < player.y && player.y < ply2) &&
+        player.vY < 0
       ) {
-        charter.y = platform.y + platform.h + charter.height;
-        charter.vY = 0;
+        player.y = ply1 + platform.h + player.height;
+        player.vY = 0;
       }
-    }
+    } // !Если мы в платформе
 
-    // Обновление игрового движка
-    function updateCharter() {
-      function onPlatform() {
-        const plx1 = platform.x;
-        const plx2 = platform.x + platform.w;
-        // const ply1 = platform.y;
-        // const ply2 = platform.y + platform.h;
-        return (
-          charter.y === platform.y && (plx1 < charter.x && charter.x < plx2)
-        );
+    // true если она на платформе
+    function onPlatform(platform, charter) {
+      const plx1 = platform.x;
+      const plx2 = platform.x + platform.w;
+      return (
+        charter.y === platform.y && (plx1 < charter.x && charter.x < plx2)
+      );
+    } // !true если она на платформе
+
+    // Постоянное обновление координат игрока
+    function updatePersonXY(player) {
+      if (player.vX !== 0) {
+        player.x += player.vX * SEC;
       }
+      if (player.stateIn === "air") {
+        player.y += player.vY * SEC;
+      }
+    } // !Постоянное обновление координат игрока
+
+
+    /* * * * * * * * * * * * * * * *
+     * ОБНОВЛЕНИЕ ИГРОВОГО ДВИЖКА  *
+     * * * * * * * * * * * * * * * */
+    function updateCharter() {
+      (onPlatform(platform, charter) || onPlatform(platform_2, charter)) ? charter.onPlatform = true : charter.onPlatform = false
 
       if (inputStatePrev.SPACE && !inputState.SPACE) {
         spaceWasUnPressed = true;
@@ -328,11 +356,13 @@ export default {
       }
       updateLastParam();
 
+      // постоянное обновление координат
+      updatePersonXY(charter);
+
       if (inputState.LEFT) charter.vX -= 0.5 * SEC;
       if (inputState.RIGHT) charter.vX += 0.5 * SEC;
 
       if (charter.vX !== 0) {
-        charter.x += charter.vX * SEC;
         if (
           (!inputState.RIGHT && !inputState.LEFT && charter.vX !== 0) ||
           (inputState.RIGHT && inputState.LEFT)
@@ -348,7 +378,6 @@ export default {
       // Притяжение
       if (charter.stateIn === "air") {
         charter.vY += 0.5 * SEC;
-        charter.y += charter.vY * SEC;
       } else if (charter.stateIn === "ground") {
         charter.vY = 0;
       }
@@ -387,7 +416,7 @@ export default {
       }
 
       // проверка состояния
-      if (charter.y < 460 && !onPlatform()) {
+      if (charter.y < 460 && !charter.onPlatform) {
         charter.stateIn = "air";
       } else {
         // из игрового фпс пролетает чуть ниже потом становится минимальным
@@ -403,7 +432,9 @@ export default {
         charter.height = 50;
       }
 
-      checkGround();
+      checkGround(charter, platform);
+      checkGround(charter, platform_2);
+
       // Cтоп зоны
       if (charter.y > 460) charter.y = 460;
       if (charter.y < 40) charter.y = 40;
@@ -421,6 +452,7 @@ export default {
       if (charter.vY < -MAX_Y_SPEED) charter.vY = -MAX_Y_SPEED;
     } // !Обновление игрового движка
 
+    // Отрисовка игрока
     function renderCharter(dt) {
       // draw rect using LERP
       let smoothY = lerp(charterPrev.y, charter.y, dt);
@@ -433,9 +465,9 @@ export default {
       ctx.fillStyle = charter.color;
       ctx.fillRect(0, 0, charter.width, charter.height);
       ctx.restore();
-    }
+    } // !Отрисовка игрока
 
-    // Рендер монитора свойств
+    // Рендер монитора свойств - отладка
     const KEYS_OF_CHARTER = Object.keys(charter);
     const POS_TEXT_OF_CHARTER = [];
     let start_point = 20;
@@ -524,7 +556,8 @@ export default {
         1090,
         POS_TEXT_OF_CHARTER[15]
       );
-    }
+    } // !Рендер монитора свойств - отладка
+
 
     let callback = () => {
       now = performance.now();
