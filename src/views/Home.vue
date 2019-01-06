@@ -11,7 +11,7 @@
   </main>
 </template>
 
-<style>
+<style scoped>
 html {
   background-color: #050411;
 }
@@ -109,6 +109,7 @@ export default {
       document.getElementById('controller_amount').innerHTML = 
       `${activeGamepads.length} controller(s) is connected` || "no controller(s)";
     });
+    
     function gamepadLoop() {
       navigator.getGamepads(); // fixes chrome bug
       for (var x = 0; x < activeGamepads.length; x++) {
