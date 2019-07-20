@@ -4,6 +4,16 @@
     <canvas id="canvas" width="1100" height="500">Go canvas</canvas>
     <canvas id="canvas_bg" width="1100" height="500">Go canvas</canvas>
 
+    <nav>
+      <ul>
+        <li>
+          <router-link to="/fractus">Перейти к frectus</router-link>
+          <router-link to="/sort">Перейти к sort</router-link>
+          <router-link to="/xcom">Перейти к xcom</router-link>
+        </li>
+      </ul>
+    </nav>
+
     <h1 id="controller_amount">
       Please use keyboard or connect controller
     </h1>
@@ -106,10 +116,10 @@ export default {
       div.setAttribute("data-button-leave", ctrl.button_leave);
       div.setAttribute("data-info", ctrl.name);
       document.getElementsByClassName("select-player")[0].appendChild(div);
-      document.getElementById('controller_amount').innerHTML = 
+      document.getElementById('controller_amount').innerHTML =
       `${activeGamepads.length} controller(s) is connected` || "no controller(s)";
     });
-    
+
     function gamepadLoop() {
       navigator.getGamepads(); // fixes chrome bug
       for (var x = 0; x < activeGamepads.length; x++) {
