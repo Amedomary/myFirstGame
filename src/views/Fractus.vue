@@ -1,33 +1,45 @@
 <template>
   <div class="about">
-    <h1>Fractus:</h1>
+    <h1>Фракталы</h1>
+    <form action="">
+      <div>
+        <input v-model="ungle" placeholder="Введите кол-во углов" type="number">
+        <p>Углы: {{ungle}}</p>
+      </div>
+      <div>
+        <input v-model="deepers" placeholder="Введите кол-во углов" type="number">
+        <p>Глубина: {{deepers}}</p>
+      </div>
+      <div>
+        <input v-model="triangleColor" placeholder="Введите кол-во углов" type="number">
+        <p>Цвет: {{triangleColor}}</p>
+      </div>
+    </form>
     <canvas id="canvas" width="900" height="900">Go canvas</canvas>
-
-    <h1 id="thanks">Thank you for watching =)</h1>
-    <!-- <h1 id="thanks"> Be right back</h1> -->
-    <div class="text">
-      <h2>For the watchers:</h2>
-      <!-- <p>You can ask all questions in the chat</p> -->
-      <!-- <p>If you get 100 followers - I'll turn on ерш micro. xD</p> -->
-      <p>You can check my site here https://amedomary.github.io/ or on twich page</p>
-
-      <h2>About:</h2>
-      <p> Добиваем красоты и валим</p>
-      <!-- <p>Interface, 2nd unit, animation, gameLoop - comming soon</p> -->
-      <p>Fractus</p>
-    </div>
   </div>
 </template>
 
 <style scoped>
 #canvas {
-  border: 1px solid #122c31;
+  /* border: 1px solid #122c31; */
   position: relative;
   z-index: 6;
 }
 #thanks {
   color: #c91919;
   font-size: 60px;
+}
+form {
+  display: flex;
+  justify-content: center;
+}
+
+input {
+  padding: 8px;
+  margin: 8px;
+  border: 1px solid #333;
+  background-color: #ddd;
+  border-radius: 4px;
 }
 .text {
   width: 1102px;
@@ -45,6 +57,13 @@ h2 {
 <script>
 export default {
   name: "xcom",
+  data() {
+    return {
+      ungle: 3,
+      deepers: 10,
+      triangleColor: 0,
+    }
+  },
   mounted() {
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
@@ -92,13 +111,13 @@ export default {
       // рисуем многогранник
       ctx.beginPath(); // Start a new path
       ctx.moveTo(points[0][0], points[0][1]);
-      
+
       for (const i in points) {
         ctx.lineTo(points[i][0], points[i][1]);
       }
       ctx.lineTo(points[0][0], points[0][1]);
       ctx.stroke();
-  
+
       const newArr = {};
 
       for (const i in points) {
@@ -143,7 +162,9 @@ export default {
       last = now;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      renderFractus(createXY([425,200], 3, 180), 28, triangleColor);
+      // Настраиваемый
+      renderFractus(createXY([425,200], this.ungle, 180), this.deepers, this.triangleColor);
+
       // renderFractus(createXY([650,200], 4, 180), 12, 90);
       renderFractus(createXY([200,650], 5, 180), 8, 180);
       renderFractus(createXY([650,650], 6, 180), 12, 270);
@@ -151,6 +172,10 @@ export default {
       requestAnimationFrame(callback);
     };
     requestAnimationFrame(callback);
+  },
+
+  updated() {
+    console.log(1);
   }
 };
 </script>

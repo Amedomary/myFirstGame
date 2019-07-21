@@ -5,13 +5,9 @@
     <canvas id="canvas_bg" width="1100" height="500">Go canvas</canvas>
 
     <nav>
-      <ul>
-        <li>
-          <router-link to="/fractus">Перейти к frectus</router-link>
-          <router-link to="/sort">Перейти к sort</router-link>
-          <router-link to="/xcom">Перейти к xcom</router-link>
-        </li>
-      </ul>
+      <router-link to="/fractus">Перейти к frectus</router-link>
+      <router-link to="/sort">Перейти к sort</router-link>
+      <router-link to="/xcom">Перейти к xcom</router-link>
     </nav>
 
     <h1 id="controller_amount">
@@ -50,6 +46,11 @@ html {
   right: 0;
   margin: auto;
   z-index: 3;
+}
+
+a {
+  display: inline-block;
+  padding: 8px;
 }
 .select-player {
   width: 80vw;
