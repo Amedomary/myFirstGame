@@ -32,6 +32,7 @@
 form {
   display: flex;
   justify-content: center;
+  flex-flow: row wrap;
 }
 
 input {
@@ -175,7 +176,6 @@ export default {
   },
 
   updated() {
-    console.log(1);
   }
 };
 </script>
