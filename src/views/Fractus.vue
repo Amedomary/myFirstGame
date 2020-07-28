@@ -2,7 +2,7 @@
   <div class="about">
     <h1>Фракталы</h1>
     <nav>
-      <router-link to="amedomary.ru">to Home page</router-link>
+      <a to="/">to Home page</a>
     </nav>
 
     <form action="">
@@ -25,7 +25,6 @@
 
 <style scoped>
 #canvas {
-  /* border: 1px solid #122c31; */
   position: relative;
   z-index: 6;
 }
