@@ -2,7 +2,7 @@
   <div class="about">
     <h1>Фракталы</h1>
     <nav>
-      <a to="/">to Home page</a>
+      <a href="/">to Home page</a>
     </nav>
 
     <form action="">

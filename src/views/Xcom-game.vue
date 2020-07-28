@@ -8,7 +8,7 @@
     <canvas id="canvas" width="1100" height="500">Go canvas</canvas>
 
     <nav>
-      <a to="/">to Home page</a>
+      <a href="/">to Home page</a>
       <router-link to="/fractus">to Frectus</router-link>
       <router-link to="/">to 2D game</router-link>
     </nav>
