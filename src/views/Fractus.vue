@@ -1,18 +1,22 @@
 <template>
   <div class="about">
     <h1>Фракталы</h1>
+    <nav>
+      <router-link to="/">to Home page</router-link>
+    </nav>
+
     <form action="">
       <div>
-        <input v-model="ungle" placeholder="Введите кол-во углов" type="number">
-        <p>Углы: {{ungle}}</p>
+        <input v-model="d_ungle" placeholder="Введите кол-во углов" type="number" min="3">
+        <p>Углы: {{d_ungle}}</p>
       </div>
       <div>
-        <input v-model="deepers" placeholder="Введите кол-во углов" type="number">
-        <p>Глубина: {{deepers}}</p>
+        <input v-model="d_deepers" placeholder="Введите глубину" type="number">
+        <p>Глубина: {{d_deepers}}</p>
       </div>
       <div>
-        <input v-model="triangleColor" placeholder="Введите кол-во углов" type="number">
-        <p>Цвет: {{triangleColor}}</p>
+        <input v-model="d_triangleColor" placeholder="Введите цвет (число)" type="number">
+        <p>Цвет: {{d_triangleColor}}</p>
       </div>
     </form>
     <canvas id="canvas" width="900" height="900">Go canvas</canvas>
@@ -25,10 +29,7 @@
   position: relative;
   z-index: 6;
 }
-#thanks {
-  color: #c91919;
-  font-size: 60px;
-}
+
 form {
   display: flex;
   justify-content: center;
@@ -60,11 +61,12 @@ export default {
   name: "xcom",
   data() {
     return {
-      ungle: 3,
-      deepers: 10,
-      triangleColor: 0,
+      d_ungle: 3,
+      d_deepers: 10,
+      d_triangleColor: 0,
     }
   },
+
   mounted() {
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
@@ -106,6 +108,7 @@ export default {
 
     function renderFractus(points, deep, color = 0) {
       if (deep < 1) return;
+      if (!points[0]) return;
 
       ctx.strokeStyle = `hsl(${color}, 100%, 50%)`;
 
@@ -145,8 +148,6 @@ export default {
       colorStep += .1;
 
       triangleColor += 1;
-
-      // startAngle += 0.005;
     }
 
     renderFractus(createXY([650,200], 5, 180), 12);
@@ -164,7 +165,7 @@ export default {
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       // Настраиваемый
-      renderFractus(createXY([425,200], this.ungle, 180), this.deepers, this.triangleColor);
+      renderFractus(createXY([425,200], this.d_ungle, 180), this.d_deepers, this.d_triangleColor);
 
       // renderFractus(createXY([650,200], 4, 180), 12, 90);
       renderFractus(createXY([200,650], 5, 180), 8, 180);

@@ -1,19 +1,23 @@
 <template>
   <main>
+    <h1>2D platformer</h1>
     <div id="background"></div>
     <canvas id="canvas" width="1100" height="500">Go canvas</canvas>
     <canvas id="canvas_bg" width="1100" height="500">Go canvas</canvas>
 
     <nav>
-      <router-link to="/fractus">Перейти к frectus</router-link>
-      <router-link to="/sort">Перейти к sort</router-link>
-      <router-link to="/xcom">Перейти к xcom</router-link>
+      <router-link to="/">to Home page</router-link>
+      <router-link to="/fractus">to Frectus</router-link>
+      <router-link to="/xcom">to Xcom</router-link>
     </nav>
 
-    <h1 id="controller_amount">
-      Please use keyboard or connect controller
-    </h1>
+    <h1 id="controller_amount">Please use ⌨️ (keyboard) or connect 🎮 (controller)</h1>
     <div class="select-player"></div>
+
+    <div class="mobile-alert">
+      <p>This game only works on PC</p>
+      <p>Please, open on your desktop device with width more than 1150px</p>
+    </div>
   </main>
 </template>
 
@@ -52,14 +56,14 @@ a {
   display: inline-block;
   padding: 8px;
 }
+
 .select-player {
   width: 80vw;
   max-width: 800px;
   margin: 1em 0;
   position: absolute;
   left: 50%;
-  top: 640px;
-  /* border: 1px dotted; */
+  top: 740px;
   transform: translate(-50%, -50%);
   counter-reset: player;
   min-height: 100px;
@@ -80,13 +84,34 @@ a {
 .select-player .player:after {
   white-space: pre;
   font-size: 0.5em;
-  content: "press " attr(data-button-join) " to join\A" attr(data-info);
+  content: "press " attr(data-button-join) " to join\A"attr(data-info);
 }
 .select-player .player.selected:nth-child(1) {
   background: rgb(0, 0, 0);
 }
 .select-player .player.selected:after {
-  content: "press " attr(data-button-leave) " to leave\A" attr(data-info);
+  content: "press " attr(data-button-leave) " to leave\A"attr(data-info);
+}
+
+.mobile-alert {
+  display: none;
+}
+
+@media (max-width: 1150px) {
+  * {
+    display: none;
+  }
+
+  main,
+  .mobile-alert p {
+    display: block;
+  }
+
+  .mobile-alert {
+    display: block;
+    text-align: center;
+    padding: 24px;
+  }
 }
 </style>
 
@@ -99,7 +124,7 @@ export default {
     // gamePad инит
     var activeGamepads = [];
     // var activePlayers = [];
-    window.addEventListener("gamepadconnected", function(e) {
+    window.addEventListener("gamepadconnected", function (e) {
       var gp = navigator.getGamepads()[e.gamepad.index];
       var div = document.createElement("div");
       div.classList.add("player");
@@ -107,7 +132,7 @@ export default {
       if (activeGamepads.length < 4) {
         activeGamepads.push({
           gamepad: gp,
-          config: ctrl
+          config: ctrl,
         });
       }
       if (ctrl.schema == "ps") {
@@ -117,8 +142,9 @@ export default {
       div.setAttribute("data-button-leave", ctrl.button_leave);
       div.setAttribute("data-info", ctrl.name);
       document.getElementsByClassName("select-player")[0].appendChild(div);
-      document.getElementById('controller_amount').innerHTML =
-      `${activeGamepads.length} controller(s) is connected` || "no controller(s)";
+      document.getElementById("controller_amount").innerHTML =
+        `${activeGamepads.length} controller(s) is connected` ||
+        "no controller(s)";
     });
 
     function gamepadLoop() {
@@ -170,14 +196,13 @@ export default {
     // }
     function getControllerConfig(id) {
       if (id.indexOf("09cc") > -1) {
-        // console.log(id);
         return {
           schema: "ps",
           name: "PS4 Controller",
           button_leave: "O",
           button_leave_index: id.indexOf("Wireless") == 0 ? 1 : 2, // inconsitent button index between Firefox and Chrome
           button_join: "X",
-          button_join_index: id.indexOf("Wireless") == 0 ? 0 : 1 // inconsitent button index between Firefox and Chrome
+          button_join_index: id.indexOf("Wireless") == 0 ? 0 : 1, // inconsitent button index between Firefox and Chrome
         };
       } else {
         return {
@@ -186,11 +211,28 @@ export default {
           button_leave: "B",
           button_leave_index: 1,
           button_join: "A",
-          button_join_index: 0
+          button_join_index: 0,
         };
       }
     }
     // !gamePad инит
+
+    function getRandomInt(from, to) {
+      let _from;
+      let _to;
+
+      if (from > to) {
+        _from = to;
+        _to = from;
+      }
+
+      if (from < to) {
+        _from = from;
+        _to = to;
+      }
+
+      return Math.floor(Math.random() * (_to - _from) + _from);
+    }
 
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
@@ -222,23 +264,24 @@ export default {
       jumpCounter: 0,
       vX: 0,
       vY: 0,
-      color: "#6affcb",
-      onPlatform: false
+      color: "106, 255, 203",
+      opacity: 1,
+      onPlatform: false,
     };
     let charterPrev = {};
 
     let platform = {
-      x: 15 * METER,
-      y: 30 * METER,
-      w: 15 * METER,
-      h: 0.5 * METER
+      x: getRandomInt(5, 25) * METER,
+      y: getRandomInt(10, 40) * METER,
+      w: getRandomInt(5, 20) * METER,
+      h: 0.5 * METER,
     };
 
     let platform_2 = {
-      x: 60 * METER,
-      y: 20 * METER,
-      w: 15 * METER,
-      h: 0.5 * METER
+      x: getRandomInt(50, 70) * METER,
+      y: getRandomInt(10, 30) * METER,
+      w: getRandomInt(5, 20) * METER,
+      h: 0.5 * METER,
     };
 
     // Способности, перки
@@ -257,6 +300,7 @@ export default {
       ctx_bg.strokeRect(-10, -10, 922, 600);
       ctx_bg.fillRect(platform.x, platform.y, platform.w, platform.h);
     };
+
     renderBackground(platform);
     renderBackground(platform_2);
 
@@ -266,12 +310,12 @@ export default {
       DOWN: false,
       LEFT: false,
       RIGHT: false,
-      SPACE: false
+      SPACE: false,
     };
     let inputStatePrev = {};
     // отпускаем пробел
     let spaceWasUnPressed = true;
-    let setKeyState = function(keyCode, isPressed) {
+    let setKeyState = function (keyCode, isPressed) {
       switch (keyCode) {
         case 65:
           inputState.LEFT = isPressed;
@@ -290,10 +334,10 @@ export default {
           break;
       }
     };
-    let keydownHandler = e => {
+    let keydownHandler = (e) => {
       setKeyState(e.which, true);
     };
-    let keyupHandler = e => {
+    let keyupHandler = (e) => {
       setKeyState(e.which, false);
     };
 
@@ -303,7 +347,7 @@ export default {
 
     // линейная интерполяция
     let lerp = (start, finish, time) => {
-      return start + (finish - start) * time;
+      return Math.round(start + (finish - start) * time);
     };
 
     // Если мы в платформе
@@ -315,7 +359,8 @@ export default {
       if (
         plx1 < player.x &&
         plx2 > player.x &&
-        (ply1 < player.y && player.y < ply2) &&
+        ply1 < player.y &&
+        player.y < ply2 &&
         player.vY > 0
       ) {
         player.y = ply1;
@@ -323,7 +368,8 @@ export default {
       } else if (
         plx1 < player.x &&
         player.x < plx2 &&
-        (ply1 < player.y && player.y < ply2) &&
+        ply1 < player.y &&
+        player.y < ply2 &&
         player.vY < 0
       ) {
         player.y = ply1 + platform.h + player.height;
@@ -335,9 +381,7 @@ export default {
     function onPlatform(platform, charter) {
       const plx1 = platform.x;
       const plx2 = platform.x + platform.w;
-      return (
-        charter.y === platform.y && (plx1 < charter.x && charter.x < plx2)
-      );
+      return charter.y === platform.y && plx1 < charter.x && charter.x < plx2;
     } // !true если она на платформе
 
     // Постоянное обновление координат игрока
@@ -350,12 +394,13 @@ export default {
       }
     } // !Постоянное обновление координат игрока
 
-
     /* * * * * * * * * * * * * * * *
      * ОБНОВЛЕНИЕ ИГРОВОГО ДВИЖКА  *
      * * * * * * * * * * * * * * * */
     function updateCharter() {
-      (onPlatform(platform, charter) || onPlatform(platform_2, charter)) ? charter.onPlatform = true : charter.onPlatform = false
+      onPlatform(platform, charter) || onPlatform(platform_2, charter)
+        ? (charter.onPlatform = true)
+        : (charter.onPlatform = false);
 
       if (inputStatePrev.SPACE && !inputState.SPACE) {
         spaceWasUnPressed = true;
@@ -431,7 +476,7 @@ export default {
       if (charter.y < 460 && !charter.onPlatform) {
         charter.stateIn = "air";
       } else {
-        // из игрового фпс пролетает чуть ниже потом становится минимальным
+        // из за игрового фпс пролетает чуть ниже потом становится минимальным
         charter.stateIn = "ground";
         charter.width = 25;
         charter.jumpCounter = 0;
@@ -474,20 +519,20 @@ export default {
       ctx.save();
       ctx.translate(smoothX, smoothY);
       ctx.translate(-charter.width / 2, -charter.height);
-      ctx.fillStyle = charter.color;
+      ctx.fillStyle = `rgb(${charter.color}`;
       ctx.fillRect(0, 0, charter.width, charter.height);
       ctx.restore();
     } // !Отрисовка игрока
 
     // Рендер монитора свойств - отладка
-    const KEYS_OF_CHARTER = Object.keys(charter);
-    const POS_TEXT_OF_CHARTER = [];
-    let start_point = 20;
-    for (let i = 0; i < KEYS_OF_CHARTER.length; i++) {
-      POS_TEXT_OF_CHARTER.push(start_point + 21);
-      start_point += 21;
-    }
-    function render_monitor_params() {
+    function render_monitor_params(charter) {
+      const KEYS_OF_CHARTER = Object.keys(charter);
+      const POS_TEXT_OF_CHARTER = [];
+      let start_point = 20;
+      for (let i = 0; i < KEYS_OF_CHARTER.length; i++) {
+        POS_TEXT_OF_CHARTER.push(start_point + 21);
+        start_point += 21;
+      }
       ctx.fillText(
         `${KEYS_OF_CHARTER[0]} = ${Math.floor(charter[KEYS_OF_CHARTER[0]])}`,
         1090,
@@ -570,7 +615,6 @@ export default {
       );
     } // !Рендер монитора свойств - отладка
 
-
     let callback = () => {
       now = performance.now();
       dt = dt + (now - last) / 1000;
@@ -584,10 +628,10 @@ export default {
 
       // Рисуем по возможностям
       renderCharter(dt * FPS);
-      render_monitor_params();
+      render_monitor_params(charter);
       requestAnimationFrame(callback);
     };
     requestAnimationFrame(callback);
-  }
+  },
 };
 </script>

@@ -1,21 +1,19 @@
 <template>
   <div class="about">
     <h1>This is X-com game</h1>
+
     <div id="background"></div>
     <canvas id="canvas_bg" width="1100" height="500">Go canvas</canvas>
     <canvas id="canvas_alert" width="1100" height="500">Go canvas</canvas>
     <canvas id="canvas" width="1100" height="500">Go canvas</canvas>
-      
-    <h1 id="thanks">Thank you for watching =)</h1>
-    <!-- <h1 id="thanks"> Be right back</h1> -->
-    
-    <div class="text">
-      <h2>For the watchers:</h2>
-      <p>You can ask all questions in the chat</p>
-      <p>If you get 100 followers - I'll turn on ерш micro. xD</p>
-      <p>You can check my site here https://amedomary.github.io/ </p>
-      <p>or on twich page</p>
 
+    <nav>
+      <router-link to="/">to Home page</router-link>
+      <router-link to="/fractus">to Frectus</router-link>
+      <router-link to="/myFirstGame/">to 2D game</router-link>
+    </nav>
+
+    <div class="text">
       <h2>About the game:</h2>
       <p>Interface, 2nd unit, animation, gameLoop - comming soon</p>
     </div>
@@ -67,6 +65,10 @@
 }
 p { margin: 10px 0; }
 h2 { margin: 30px 0 15px 0; }
+a {
+  display: inline-block;
+  padding: 8px;
+}
 </style>
 
 <script>
@@ -79,7 +81,7 @@ export default {
     const ctx_bg = canvas_bg.getContext("2d");
     const canvas_alert = document.getElementById("canvas_alert");
     const ctx_alert = canvas_alert.getContext("2d");
-    
+
     // game loop
     // let last = performance.now();
     // const FPS = 60;
@@ -190,8 +192,6 @@ export default {
     }
 
     function renderHoverRect() {
-      // console.log(hoverCell);
-
       // if cell is blocked
       if (blockCells.some(checkBlockCells)) {
         ctx.strokeStyle = 'rgba(255, 0, 100, .9)';
@@ -264,7 +264,7 @@ export default {
       unit1.selected = false;
       unit1.x = hoverCell.x;
       unit1.y = hoverCell.y;
-      
+
       renderUnit(unit1);
       activeCell = { x: null, y: null };
     }
@@ -288,8 +288,8 @@ export default {
 
     // обработчки движения мыши
     canvas.onmousemove = function(e) {
-      const xRectOld = hoverCell.x; 
-      const yRectOld = hoverCell.y; 
+      const xRectOld = hoverCell.x;
+      const yRectOld = hoverCell.y;
       hoverCell.x = ~~(e.layerX / gridStep);
       hoverCell.y = ~~(e.layerY / gridStep);
 
