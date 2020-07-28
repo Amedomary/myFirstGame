@@ -2,7 +2,7 @@
   <div class="about">
     <h1>Фракталы</h1>
     <nav>
-      <router-link to="/">to Home page</router-link>
+      <router-link to="amedomary.ru">to Home page</router-link>
     </nav>
 
     <form action="">
